@@ -12,7 +12,8 @@ from .models import Site
 class SiteAPITests(APITestCase):
 
     def setUp(self):
-        self.url = 'sites:api'
+        self.url_list = 'sites_api:site-list'
+        self.url_detail = 'sites_api:site-detail'
 
         self.manager_user_password = 'manager_password'
         self.manager_user = User.objects.create(
@@ -22,84 +23,85 @@ class SiteAPITests(APITestCase):
         self.registered_user = User.objects.create(
             username='user', password=self.registered_user_password)
 
+        self.create_params = (reverse(self.url_list), {
+            'url': 'https://github.com', 'is_private': True
+        })
+
         Site.objects.bulk_create([
             Site(url='https://google.com'),
             Site(url='https://instagram.com', is_private=True),
         ])
 
-    def test_anonymous_user_only_public_sites_list_and_by_key(self):
-        response = self.client.get(reverse(self.url))
+    def test_anonymous_user_only_public_sites_list(self):
+        response = self.client.get(reverse(self.url_list))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [
             {'url': 'https://google.com', 'is_private': False}
         ])
 
-        response = self.client.get(reverse(self.url, args=(1,)))
+    def test_anonymous_user_only_public_sites_detail(self):
+        response = self.client.get(reverse(self.url_detail, args=(1,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {
             'url': 'https://google.com', 'is_private': False
         })
 
-        response = self.client.get(reverse(self.url, args=(2,)))
+    def test_anonymous_user_only_public_sites_detail_forbidden(self):
+        response = self.client.get(reverse(self.url_detail, args=(2,)))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_authenticated_user_private_sites_list_and_by_key(self):
+    def test_authenticated_user_private_sites_list(self):
         self.client.login(
             username=self.registered_user,
             password=self.registered_user_password)
 
-        response = self.client.get(reverse(self.url))
+        response = self.client.get(reverse(self.url_list))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [
             {'url': 'https://google.com', 'is_private': False},
             {'url': 'https://instagram.com', 'is_private': True}
         ])
 
-        response = self.client.get(reverse(self.url, args=(1,)))
+    def test_authenticated_user_private_sites_detail(self):
+        self.client.login(
+            username=self.registered_user,
+            password=self.registered_user_password)
+
+        response = self.client.get(reverse(self.url_detail, args=(1,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {
             'url': 'https://google.com', 'is_private': False
         })
 
-        response = self.client.get(reverse(self.url, args=(2,)))
+        response = self.client.get(reverse(self.url_detail, args=(2,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, {
             'url': 'https://instagram.com', 'is_private': True
         })
 
-        self.client.logout()
-
-    def test_creating_new_site_by_anonymous_other_registered_and_manager(self):
-        params = (reverse(self.url), {
-            'url': 'https://github.com', 'is_private': True
-        })
-
-        response = self.client.post(*params)
+    def test_creating_new_site_by_anonymous(self):
+        response = self.client.post(*self.create_params)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_creating_new_site_by_other_registered_user(self):
         self.client.login(
             username=self.registered_user,
             password=self.registered_user_password)
-        response = self.client.post(*params)
+        response = self.client.post(*self.create_params)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.client.logout()
 
+    def test_creating_new_site_by_username_manager(self):
         self.client.login(
             username=self.manager_user,
             password=self.manager_user_password)
-        response = self.client.post(*params)
+        response = self.client.post(*self.create_params)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.client.logout()
 
     def test_invalid_url_name(self):
-        params = (reverse(self.url), {
-            'url': 'http://github.com', 'is_private': True
-        })
-
         self.client.login(
             username=self.manager_user,
             password=self.manager_user_password)
-        response = self.client.post(*params)
+        response = self.client.post(*self.create_params)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 

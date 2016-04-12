@@ -1,9 +1,24 @@
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from rest_framework import serializers, permissions, exceptions
-# from rest_framework.generics import CreateAPIView
+from rest_framework import viewsets
+from rest_framework import serializers
+
+from .models import Site
 
 
-# class SiteSerializer(serializers.ModelSerializer):
+class SiteSerializer(serializers.ModelSerializer):
 
-    # class Meta
+    class Meta:
+        model = Site
+        fields = ['url', 'is_private']
+
+
+class SiteAPIViewSet(viewsets.ModelViewSet):
+    serializer_class = SiteSerializer
+    queryset = Site.objects.none()
+
+    def get_queryset(self):
+        sites = Site.objects.all()
+
+        if not self.request.user.is_authenticated():
+            return sites.filter(is_private=False)
+
+        return sites

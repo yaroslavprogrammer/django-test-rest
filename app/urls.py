@@ -9,6 +9,9 @@ from django.conf.urls.static import static
 
 urlpatterns = i18n_patterns(
     url(r'^admin/', include(admin.site.urls)),
+
+    url(r'api/', include(
+        'app.components.sites.api_urls', namespace='sites_api'))
 )
 
 # i18n independent patterns
