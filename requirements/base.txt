@@ -19,4 +19,4 @@ django-redis
 djangorestframework
 
 
-git+git://github.com/mtrgroup/django-mtr-utils#egg-django-mtr-utils
+git+git://github.com/mtrgroup/django-mtr-utils@master#egg=django-mtr-utils

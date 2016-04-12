@@ -1,8 +1,14 @@
 import requests
 
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from .translation import gettext_lazy as _
+
+if settings.DEBUG:
+    import requests_cache
+
+    requests_cache.install_cache('requests')
 
 
 class SiteAvailableValidator(object):

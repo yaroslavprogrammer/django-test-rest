@@ -10,20 +10,25 @@ from .models import Site
 
 
 class SiteAPITests(APITestCase):
+    # TODO: needs mock when tester don't have internet connection
+    # SLOW: will work faster if we use mocked of request
 
-    def setUp(self):
-        self.url_list = 'sites_api:site-list'
-        self.url_detail = 'sites_api:site-detail'
+    @classmethod
+    def setUpClass(cls):
+        super(SiteAPITests, cls).setUpClass()
 
-        self.manager_user_password = 'manager_password'
-        self.manager_user = User.objects.create(
-            username='manager', password=self.manager_user_password)
+        cls.url_list = 'sites_api:site-list'
+        cls.url_detail = 'sites_api:site-detail'
 
-        self.registered_user_password = 'test_password'
-        self.registered_user = User.objects.create(
-            username='user', password=self.registered_user_password)
+        cls.manager_user_password = 'manager_password'
+        cls.manager_user = User.objects.create_user(
+            'manager', 'manager@some.com', cls.manager_user_password)
 
-        self.create_params = (reverse(self.url_list), {
+        cls.registered_user_password = 'test_password'
+        cls.registered_user = User.objects.create_user(
+            'user', 'user@some.com', cls.registered_user_password)
+
+        cls.create_params = (reverse(cls.url_list), {
             'url': 'https://github.com', 'is_private': True
         })
 
@@ -48,12 +53,12 @@ class SiteAPITests(APITestCase):
 
     def test_anonymous_user_only_public_sites_detail_forbidden(self):
         response = self.client.get(reverse(self.url_detail, args=(2,)))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_authenticated_user_private_sites_list(self):
-        self.client.login(
-            username=self.registered_user,
-            password=self.registered_user_password)
+        self.assertTrue(self.client.login(
+            username=self.registered_user.username,
+            password=self.registered_user_password))
 
         response = self.client.get(reverse(self.url_list))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -64,7 +69,7 @@ class SiteAPITests(APITestCase):
 
     def test_authenticated_user_private_sites_detail(self):
         self.client.login(
-            username=self.registered_user,
+            username=self.registered_user.username,
             password=self.registered_user_password)
 
         response = self.client.get(reverse(self.url_detail, args=(1,)))
@@ -99,9 +104,11 @@ class SiteAPITests(APITestCase):
 
     def test_invalid_url_name(self):
         self.client.login(
-            username=self.manager_user,
+            username=self.manager_user.username,
             password=self.manager_user_password)
-        response = self.client.post(*self.create_params)
+        response = self.client.post(reverse(self.url_list), {
+            'url': 'http://github.com', 'is_private': True
+        })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -117,9 +124,6 @@ class SiteModelTests(TestCase):
         self.assertNotEqual(s.id, None)
 
     def test_raise_site_not_available(self):
-        # TODO: needs mock when tester don't have internet connection
-        # SLOW: will work faster if we use mocked of request
-
         with self.assertRaises(ValidationError):
             Site(url='https://asdsadsddas.com').save()
 
