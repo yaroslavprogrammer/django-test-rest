@@ -12,10 +12,7 @@ if settings.DEBUG:
 
 
 class SiteAvailableValidator(object):
-    """ Validate if site have 200 OK response with given timeout """
-
-    def __init__(self, timeout=5):
-        self.timeout = timeout
+    """ Validate if site have 200 OK response"""
 
     def __call__(self, value):
         try:
