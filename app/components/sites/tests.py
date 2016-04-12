@@ -11,7 +11,6 @@ from .models import Site
 
 class SiteAPITests(APITestCase):
     # TODO: needs mock when tester don't have internet connection
-    # SLOW: will work faster if we use mocked of request
 
     @classmethod
     def setUpClass(cls):
@@ -79,7 +78,7 @@ class SiteAPITests(APITestCase):
 
     def test_creating_new_site_by_anonymous(self):
         response = self.client.post(*self.create_params)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_creating_new_site_by_other_registered_user(self):
         self.client.force_login(self.registered_user)
