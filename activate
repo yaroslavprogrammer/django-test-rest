@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# activate or create virtualenv project
+VERSION=$1
+export PROJECT_NAME='django-test-rest'
+
+alias f=fab
+alias m='python manage.py'
+
+if [[ -z "$VIRTUAL_ENV" ]]; then
+    source /usr/local/bin/virtualenvwrapper.sh
+fi
+
+if [[ -z "$1" ]]; then
+    VERSION=3
+fi
+
+ENV_NAME="$PROJECT_NAME-$VERSION"
+PYTHON_BIN="/usr/bin/python$VERSION"
+
+if [ -n "$(lsvirtualenv | grep $ENV_NAME)" ]; then
+    workon $ENV_NAME
+else
+    mkvirtualenv $ENV_NAME -p $PYTHON_BIN
+    pip install -r ./requirements/development.txt
+    f bootstrap
+fi
+
+# add python current dir to python paths
+export PYTHONPATH=$PYTHONPATH:./
+export PYTHONPATH=$PYTHONPATH:./lib/
+
+# set env vars
+source ./.env
