@@ -1,5 +1,6 @@
 from django.core.urlresolvers import reverse
-
+from django.core.exceptions import ValidationError
+from django.test import TestCase
 from django.contrib.auth.models import User
 
 from rest_framework.test import APITestCase
@@ -8,7 +9,7 @@ from rest_framework import status
 from .models import Site
 
 
-class SiteTests(APITestCase):
+class SiteAPITests(APITestCase):
 
     def setUp(self):
         self.url = 'sites:api'
@@ -88,3 +89,36 @@ class SiteTests(APITestCase):
             password=self.manager_user_password)
         response = self.client.post(*params)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.client.logout()
+
+    def test_invalid_url_name(self):
+        params = (reverse(self.url), {
+            'url': 'http://github.com', 'is_private': True
+        })
+
+        self.client.login(
+            username=self.manager_user,
+            password=self.manager_user_password)
+        response = self.client.post(*params)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class SiteModelTests(TestCase):
+
+    def test_raise_not_https_model_on_save(self):
+        with self.assertRaises(ValidationError):
+            Site(url='http://test.com', is_private=True).save()
+
+        s = Site(url='https://test.com', is_private=True)
+        s.save()
+
+        self.assertNotEqual(s.id, None)
+
+    def test_raise_site_not_available(self):
+        # TODO: needs mock when tester don't have internet connection
+        # SLOW: will work faster if we use mocked of request
+
+        with self.assertRaises(ValidationError):
+            Site(url='https://asdsadsddas.com').save()
+
+        Site(url='https://google.com').save()
