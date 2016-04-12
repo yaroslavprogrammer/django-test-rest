@@ -42,7 +42,6 @@ PASSWORD_HASHERS = (
 )
 
 DEFAULT_FILE_STORAGE = 'mtr.utils.storage.OverwriteDublicateFileSystemStorage'
-AUTHENTICATION_BACKENDS = ('mtr.user.auth.CachedModelBackend',)
 
 SESSION_COOKIE_NAME = 'app'
 
@@ -93,8 +92,6 @@ STATIC_URL = '/static/'
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-
-    'compressor.finders.CompressorFinder',
 )
 
 SECRET_KEY = get_env('SECRET_KEY')
@@ -150,7 +147,7 @@ INSTALLED_APPS = (
     'django.contrib.sitemaps',
     'django.contrib.admin',
 
-    'app.components.sites'
+    'app.components.sites',
 )
 
 LOGGING = {

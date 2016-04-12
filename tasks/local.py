@@ -6,7 +6,7 @@ from babel.messages.pofile import read_po, write_po
 
 
 @task
-def m(command):
+def manage(command):
     """Run ./manage.py command"""
 
     local('./manage.py {}'.format(command))
@@ -16,7 +16,7 @@ def m(command):
 def run(host='127.0.0.1', port=8000):
     """Start uwsgi development server"""
 
-    m('runserver {}:{}'.format(host, port))
+    manage('runserver {}:{}'.format(host, port))
 
 
 @task
@@ -42,18 +42,6 @@ def install():
 
     with lcd('requirements'):
         local('pip install -r development.txt')
-
-
-@task
-def compilemessages():
-    apps = local('cd app/components/ && ls -d */', capture=True)
-    for app in apps.split():
-        try:
-            with lcd('app/components/{}'.format(app.strip())):
-                local('django-admin.py compilemessages')
-        except:
-            pass
-    local('cd app && <django-admin class="p"></django-admin>y compilemessages')
 
 
 def lreplace(pattern, sub, string):
@@ -112,12 +100,15 @@ def locale(action='make', lang='en'):
 
 @task
 def bootstrap_db():
+    """ Bootstrap initial database with project user and permissions """
     local('sh scripts/bootstrap_db.sh')
 
 
 @task
 def init():
+    """ Create postgres database, migrate and create user """
+
     bootstrap_db()
 
-    m('migrate')
-    m('createsuperuser')
+    manage('migrate')
+    manage('createsuperuser')
