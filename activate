@@ -27,7 +27,7 @@ else
 fi
 
 # add python current dir to python paths
-export PYTHONPATH=$PYTHONPATH:./
+export PYTHONPATH=$PYTHONPATH:~/
 export PYTHONPATH=$PYTHONPATH:./lib/
 
 # set env vars

@@ -55,13 +55,13 @@ def lreplace(pattern, sub, string):
 def locale(action='make', lang='en'):
     """Make messages, and compile messages for listed apps"""
 
-    apps = []
-    apps = local('cd app/components/ && ls -d */', capture=True)
-    apps = apps.split()
-    apps = map(lambda a: 'app.components.{}'.format(a), apps)
+    apps = local('cd app/components/ && ls -d */', capture=True).split()
+    apps = map(lambda a: 'app.components.{}'.format(a.strip('/')), apps)
+    apps = filter(lambda a: '__pycache__' not in a, apps)
 
     if action == 'make':
-        for app, app_path in apps:
+        for app in apps:
+            print(app)
             app_path = os.path.join(*app.split('.'))
 
             with lcd(app_path):
@@ -79,6 +79,8 @@ def locale(action='make', lang='en'):
                 with open(po_path, 'wb') as f:
                     write_po(f, catalog, include_previous=True)
                 local('django-admin.py makemessages -l {}'.format(lang))
+
+                print(local('ls'))
 
                 with open(po_path, 'rb') as f:
                     catalog = read_po(f)

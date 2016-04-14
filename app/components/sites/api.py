@@ -32,7 +32,7 @@ class SitePermissions(permissions.BasePermission):
 
 class SiteAPIViewSet(viewsets.ModelViewSet):
     serializer_class = SiteSerializer
-    queryset = Site.objects.none()
+    queryset = Site.objects.all()
     permission_classes = (SitePermissions,)
 
     def get_queryset(self):

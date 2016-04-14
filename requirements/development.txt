@@ -3,6 +3,5 @@
 django-debug-toolbar
 django-extensions
 werkzeug
-requests-cache
 
 git+https://github.com/pashinin/fabric@6783d2f7ad7a449c97cd1ee0df9a2dbc29422fce#egg=fabric
